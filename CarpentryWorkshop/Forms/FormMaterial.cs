@@ -68,6 +68,8 @@ namespace WoodworkingWorkshop.Forms
             catch (Exception ex) { MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
+
+
         private void InitializeComponent()
         {
             label1 = new Label();

@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Windows.Forms;
 using Unity;
 using WoodworkingWorkshop.Repositories;
@@ -19,13 +18,57 @@ namespace WoodworkingWorkshop.Forms
         }
 
         private void FormMaterials_Load(object sender, EventArgs e) => LoadList();
-        private void buttonAdd_Click(object sender, EventArgs e) { _container.Resolve<FormMaterial>().ShowDialog(); LoadList(); }
 
+        // --- НОВЫЕ ОБРАБОТЧИКИ ---
+        private void buttonAdd_Click(object sender, EventArgs e)
+        {
+            _container.Resolve<FormMaterial>().ShowDialog();
+            LoadList();
+        }
+
+        private void buttonEdit_Click(object sender, EventArgs e)
+        {
+            if (!TryGetIdentifierFromSelectedRow(out var findId)) return;
+
+            var form = _container.Resolve<FormMaterial>();
+            form.Id = findId;
+            form.ShowDialog();
+            LoadList();
+        }
+
+        private void buttonDelete_Click(object sender, EventArgs e)
+        {
+            if (!TryGetIdentifierFromSelectedRow(out var findId)) return;
+
+            if (MessageBox.Show("Удалить запись?", "Удаление", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                return;
+
+            _repository.DeleteMaterial(findId);
+            LoadList();
+        }
+
+        private void LoadList() => dataGridViewData.DataSource = _repository.ReadMaterials();
+
+        private bool TryGetIdentifierFromSelectedRow(out int id)
+        {
+            id = 0;
+            if (dataGridViewData.SelectedRows.Count < 1)
+            {
+                MessageBox.Show("Нет выбранной записи", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+            id = Convert.ToInt32(dataGridViewData.SelectedRows[0].Cells["Id"].Value);
+            return true;
+        }
+
+        // --- КОД ДИЗАЙНЕРА (ДОБАВЛЕНЫ КНОПКИ) ---
         private void InitializeComponent()
         {
             dataGridViewData = new DataGridView();
             panel1 = new Panel();
             buttonAdd = new Button();
+            buttonEdit = new Button();
+            buttonDelete = new Button();
             ((System.ComponentModel.ISupportInitialize)dataGridViewData).BeginInit();
             panel1.SuspendLayout();
             SuspendLayout();
@@ -42,6 +85,8 @@ namespace WoodworkingWorkshop.Forms
             // panel1
             // 
             panel1.Controls.Add(buttonAdd);
+            panel1.Controls.Add(buttonEdit);
+            panel1.Controls.Add(buttonDelete);
             panel1.Dock = DockStyle.Right;
             panel1.Location = new Point(450, 0);
             panel1.Name = "panel1";
@@ -58,6 +103,26 @@ namespace WoodworkingWorkshop.Forms
             buttonAdd.UseVisualStyleBackColor = true;
             buttonAdd.Click += buttonAdd_Click;
             // 
+            // buttonEdit
+            // 
+            buttonEdit.Location = new Point(18, 70);
+            buttonEdit.Name = "buttonEdit";
+            buttonEdit.Size = new Size(170, 42);
+            buttonEdit.TabIndex = 1;
+            buttonEdit.Text = "Изменить";
+            buttonEdit.UseVisualStyleBackColor = true;
+            buttonEdit.Click += buttonEdit_Click;
+            // 
+            // buttonDelete
+            // 
+            buttonDelete.Location = new Point(18, 128);
+            buttonDelete.Name = "buttonDelete";
+            buttonDelete.Size = new Size(170, 42);
+            buttonDelete.TabIndex = 2;
+            buttonDelete.Text = "Удалить";
+            buttonDelete.UseVisualStyleBackColor = true;
+            buttonDelete.Click += buttonDelete_Click;
+            // 
             // FormMaterials
             // 
             ClientSize = new Size(650, 441);
@@ -72,9 +137,10 @@ namespace WoodworkingWorkshop.Forms
 
         }
 
-        private void LoadList() => dataGridViewData.DataSource = _repository.ReadMaterials();
         private DataGridView dataGridViewData;
         private Panel panel1;
         private Button buttonAdd;
+        private Button buttonEdit;
+        private Button buttonDelete;
     }
 }
